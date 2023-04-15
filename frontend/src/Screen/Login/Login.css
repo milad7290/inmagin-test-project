@@ -1,0 +1,15 @@
+.profile-img-card {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 10px;
+  display: block;
+}
+
+.form-control {
+  margin-bottom: 5px;
+}
+
+/* .alert {
+  font-size: 12px;
+  padding: 4px 10px;
+} */
