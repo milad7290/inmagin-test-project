@@ -1,6 +1,5 @@
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import React, { useEffect, useState } from "react";
-import { NavigateFunction, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import { IRestaurant } from "../../models/entities/restaurant.entity";
 import "./GeneralSetting.css";
@@ -18,8 +17,6 @@ const GeneralSetting: React.FC<Props> = ({
   loading,
   message,
 }) => {
-  let navigate: NavigateFunction = useNavigate();
-
   const [fomValues, setFomValues] = useState<{
     maxNumberOfTables: number;
     maxNumberOfChairsPerTable: number;

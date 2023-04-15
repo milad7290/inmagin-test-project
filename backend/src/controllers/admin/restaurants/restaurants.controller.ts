@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Patch,
+  Query,
 } from "@nestjs/common";
 import { ObjectID } from "mongodb";
 import { UpdateRestaurantDto } from "src/models/dto/admin/restaurant/update-restaurant.dto";
@@ -66,6 +67,32 @@ export class RestaurantsController {
         HttpStatus.I_AM_A_TEAPOT
       );
     }
+  }
+
+  @Get("checkForAvailability/:id")
+  // @UseGuards(AuthGuard('jwt'))
+  async checkForAvailability(
+    @Param("id") id: string,
+    @Query("headCount") headCount: number
+  ): Promise<string> {
+    try {
+      await this.restaurantsService.findOneWithRelations(ObjectID(id), [
+        "tables",
+        "queues",
+        "owner",
+      ]);
+    } catch (error) {
+      throw new HttpException(
+        "No restaurant founded",
+        HttpStatus.I_AM_A_TEAPOT
+      );
+    }
+
+    if (Number(headCount) === 5) {
+      throw new HttpException("Wrong headcount", HttpStatus.I_AM_A_TEAPOT);
+    }
+
+    return `${headCount} Ok`;
   }
 
   @Patch()

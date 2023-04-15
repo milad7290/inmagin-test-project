@@ -1,7 +1,9 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppController } from "./app.controller";
+import { QueueModule } from "./controllers/admin/queues/queues.module";
 import { RestaurantModule } from "./controllers/admin/restaurants/restaurants.module";
+import { TableModule } from "./controllers/admin/tables/tables.module";
 import { AuthModule } from "./controllers/auth/auth.module";
 import { UsersModule } from "./controllers/users/users.module";
 import { ChairEntity } from "./models/entities/chair.entity";
@@ -33,6 +35,8 @@ import { configService } from "./services/config/config.service";
     UsersModule,
     AuthModule,
     RestaurantModule,
+    TableModule,
+    QueueModule,
   ],
 
   controllers: [AppController],

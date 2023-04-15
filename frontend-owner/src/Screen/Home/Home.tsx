@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import CurrentTableStatus from "../../components/CurrentTableStatus/CurrentTableStatus";
 import GeneralSetting from "../../components/GeneralSetting/GeneralSetting";
 import { IRestaurant } from "../../models/entities/restaurant.entity";
 import * as AuthService from "../../services/auth.service";
@@ -7,6 +8,7 @@ import {
   getCurrentRestaurant,
   updateCurrentRestaurant,
 } from "../../services/restaurant.service";
+import { createNewTable } from "../../services/table.service";
 import "./Home.css";
 
 const Home: React.FC = () => {
@@ -63,6 +65,40 @@ const Home: React.FC = () => {
     }
   };
 
+  const handleAddNewTable = async (formValue: {
+    name: string;
+    chairNo: number;
+  }) => {
+    const { name, chairNo } = formValue;
+
+    setRestaurantUpdateError("");
+    setRestaurantUpdateLoaded(true);
+
+    if (restaurant && restaurant.id) {
+      try {
+        const response = await createNewTable({
+          restaurantId: restaurant.id,
+          name,
+          chairNo,
+        });
+
+        console.log("response", response);
+        // setRestaurant(response.data);
+        setRestaurantUpdateLoaded(false);
+      } catch (error: any) {
+        const resMessage =
+          (error.response &&
+            error.response.data &&
+            error.response.data.message) ||
+          error.message ||
+          error.toString();
+
+        setRestaurantUpdateLoaded(false);
+        setRestaurantUpdateError(resMessage);
+      }
+    }
+  };
+
   if (!user) {
     return <Navigate to="/login" />;
   }
@@ -79,37 +115,12 @@ const Home: React.FC = () => {
       </header>
 
       <section>
-        <h3> Current tables status</h3>
-        <table className="table">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">First</th>
-              <th scope="col">Last</th>
-              <th scope="col">Handle</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">1</th>
-              <td>Mark</td>
-              <td>Otto</td>
-              <td>@mdo</td>
-            </tr>
-            <tr>
-              <th scope="row">2</th>
-              <td>Jacob</td>
-              <td>Thornton</td>
-              <td>@fat</td>
-            </tr>
-            <tr>
-              <th scope="row">3</th>
-              <td>Larry</td>
-              <td>the Bird</td>
-              <td>@twitter</td>
-            </tr>
-          </tbody>
-        </table>
+        <CurrentTableStatus
+          restaurant={restaurant}
+          handleAddNewTable={handleAddNewTable}
+          loading={restaurantUpdateLoaded}
+          message={restaurantUpdateError}
+        />
 
         <h3> Restaurant queue status</h3>
         <table className="table">
