@@ -3,3 +3,13 @@
   border-bottom: 1px solid darkgray;
   margin-bottom: 30px;
 }
+
+.card-container {
+  margin: 0 auto 18px;
+  margin-top: 0px;
+}
+
+.card-container.card {
+  max-width: 350px !important;
+  padding: 20px;
+}

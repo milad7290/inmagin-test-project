@@ -13,7 +13,7 @@ export const createNewTable = (data: CreateTableDto) => {
 };
 
 export const setTableAsAvailable = (data: SetAsAvailableTableDto) => {
-  return axios.patch<IRestaurant>(
+  return axios.patch<[IRestaurant, string]>(
     API_URL + `/admin/tables/setTableAsAvailable`,
     data,
     {

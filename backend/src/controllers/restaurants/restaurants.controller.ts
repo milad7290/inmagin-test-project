@@ -10,6 +10,7 @@ import * as _ from "lodash";
 import { RestaurantEntity } from "src/models/entities/restaurant.entity";
 import { RestaurantsService } from "src/services/db/restaurants/restaurants.service";
 import { TablesService } from "src/services/db/tables/tables.service";
+import { QueueCheckService } from "src/services/queue/queue-check.service";
 import { QueuesService } from "./../../services/db/queues/queues.service";
 
 @Controller("restaurants")
@@ -17,7 +18,8 @@ export class RestaurantsController {
   constructor(
     private restaurantsService: RestaurantsService,
     private tablesService: TablesService,
-    private queuesService: QueuesService
+    private queuesService: QueuesService,
+    private queueCheckService: QueueCheckService
   ) {}
 
   @Get(":name")
@@ -47,34 +49,17 @@ export class RestaurantsController {
 
     const customerHeadCount = Number(headCount);
 
-    let availableSoFar = 0;
-    let canBeSetForaCustomer = [];
-    let weHaveEnough = false;
-
-    for (let i = 0; i < availableTables.length; i++) {
-      const element = availableTables[i];
-
-      availableSoFar = availableSoFar + element.chairsNo;
-      canBeSetForaCustomer.push({ id: element.id, name: element.name });
-
-      if (availableSoFar >= customerHeadCount) {
-        weHaveEnough = true;
-        break;
-      }
-    }
-
-    if (weHaveEnough) {
-      const tableList = _.map(canBeSetForaCustomer, "name").join(" and ");
-      await Promise.all(
-        canBeSetForaCustomer.map(async (table) => {
-          await this.tablesService.updateOne(table.id, {
-            isAvailable: false,
-          });
-        })
+    const [weHaveEnoughTablesForHeadCount, canBeSetForaCustomer] =
+      await this.queueCheckService.checkAvailability(
+        availableTables,
+        customerHeadCount
       );
+
+    if (weHaveEnoughTablesForHeadCount) {
+      const tableList = _.map(canBeSetForaCustomer, "name").join(" and ");
       return `${canBeSetForaCustomer.length} tables required, head to Table ${tableList}`;
     } else {
-      const maxResult = await this.queuesService.getOneMaximumQueueNo(id);
+      const maxResult = await this.queuesService.getMaximumQueueNo(id);
       const generatedQueueNo = maxResult.max ? maxResult.max + 1 : 101;
       await this.queuesService.save({
         queueNo: generatedQueueNo,

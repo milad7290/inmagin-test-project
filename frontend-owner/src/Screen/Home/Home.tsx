@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import { useToasts } from "react-toast-notifications";
 import CurrentQueueStatus from "../../components/CurrentQueueStatus/CurrentQueueStatus";
 import CurrentTableStatus from "../../components/CurrentTableStatus/CurrentTableStatus";
 import GeneralSetting from "../../components/GeneralSetting/GeneralSetting";
@@ -18,11 +19,15 @@ import {
 import "./Home.css";
 
 const Home: React.FC = () => {
+  const { addToast } = useToasts();
+
   const [restaurant, setRestaurant] = useState<IRestaurant | null>(null);
-  const [restaurantError, setRestaurantError] = useState("");
-  const [restaurantUpdateError, setRestaurantUpdateError] = useState("");
   const [restaurantLoaded, setRestaurantLoaded] = useState(false);
-  const [restaurantUpdateLoaded, setRestaurantUpdateLoaded] = useState(false);
+  const [restaurantUpdateLoading, setRestaurantUpdateLoading] = useState(false);
+  const [addTableLoading, setAddTableLoading] = useState(false);
+  const [removeTableLoading, setRemoveTableLoading] = useState(false);
+  const [updateTableLoading, setUpdateTableLoading] = useState(false);
+  const [removeQueueLoading, setRemoveQueueLoading] = useState(false);
   const user = AuthService.getCurrentUser();
 
   useEffect(() => {
@@ -32,8 +37,6 @@ const Home: React.FC = () => {
           const response = await getCurrentRestaurant(user.restaurant.id);
 
           setRestaurant(response.data);
-        } catch (error: any) {
-          setRestaurantError(error);
         } finally {
           setRestaurantLoaded(true);
         }
@@ -47,8 +50,7 @@ const Home: React.FC = () => {
   }) => {
     const { maxNumberOfTables, maxNumberOfChairsPerTable } = formValue;
 
-    setRestaurantUpdateError("");
-    setRestaurantUpdateLoaded(true);
+    setRestaurantUpdateLoading(true);
 
     if (restaurant && restaurant.id) {
       try {
@@ -57,8 +59,12 @@ const Home: React.FC = () => {
           maxNumberOfTables,
           maxNumberOfChairsPerTable,
         });
+
         setRestaurant(response.data);
-        setRestaurantUpdateLoaded(false);
+        setRestaurantUpdateLoading(false);
+        addToast("Restaurant general setting Successfully updated", {
+          appearance: "success",
+        });
       } catch (error: any) {
         const resMessage =
           (error.response &&
@@ -67,8 +73,10 @@ const Home: React.FC = () => {
           error.message ||
           error.toString();
 
-        setRestaurantUpdateLoaded(false);
-        setRestaurantUpdateError(resMessage);
+        setRestaurantUpdateLoading(false);
+        addToast(resMessage, {
+          appearance: "error",
+        });
       }
     }
   };
@@ -76,8 +84,7 @@ const Home: React.FC = () => {
   const handleAddNewTable = async (formValue: { chairNo: number }) => {
     const { chairNo } = formValue;
 
-    setRestaurantUpdateError("");
-    setRestaurantUpdateLoaded(true);
+    setAddTableLoading(true);
 
     if (restaurant && restaurant.id) {
       try {
@@ -87,7 +94,11 @@ const Home: React.FC = () => {
         });
 
         setRestaurant(response.data);
-        setRestaurantUpdateLoaded(false);
+        setAddTableLoading(false);
+
+        addToast("New table successfully added to restaurant", {
+          appearance: "success",
+        });
       } catch (error: any) {
         const resMessage =
           (error.response &&
@@ -96,21 +107,22 @@ const Home: React.FC = () => {
           error.message ||
           error.toString();
 
-        setRestaurantUpdateLoaded(false);
-        setRestaurantUpdateError(resMessage);
+        setAddTableLoading(false);
+        addToast(resMessage, {
+          appearance: "error",
+        });
       }
     }
   };
 
   const handleRemoveTable = async (tableId: string) => {
-    setRestaurantUpdateError("");
-    setRestaurantUpdateLoaded(true);
+    setRemoveTableLoading(true);
 
     try {
       const response = await removeTable(tableId);
 
       setRestaurant(response.data);
-      setRestaurantUpdateLoaded(false);
+      setRemoveTableLoading(false);
     } catch (error: any) {
       const resMessage =
         (error.response &&
@@ -119,44 +131,23 @@ const Home: React.FC = () => {
         error.message ||
         error.toString();
 
-      setRestaurantUpdateLoaded(false);
-      setRestaurantUpdateError(resMessage);
-    }
-  };
-
-  const handleRemoveFromQueue = async (queueId: string) => {
-    setRestaurantUpdateError("");
-    setRestaurantUpdateLoaded(true);
-
-    try {
-      const response = await removeFromQueue(queueId);
-
-      setRestaurant(response.data);
-      setRestaurantUpdateLoaded(false);
-    } catch (error: any) {
-      const resMessage =
-        (error.response &&
-          error.response.data &&
-          error.response.data.message) ||
-        error.message ||
-        error.toString();
-
-      setRestaurantUpdateLoaded(false);
-      setRestaurantUpdateError(resMessage);
+      setRemoveTableLoading(false);
+      addToast(resMessage, {
+        appearance: "error",
+      });
     }
   };
 
   const handleSetTableAsAvailable = async (tableId: string) => {
-    setRestaurantUpdateError("");
-    setRestaurantUpdateLoaded(true);
+    setUpdateTableLoading(true);
 
     try {
       const response = await setTableAsAvailable({
         tableId,
       });
 
-      setRestaurant(response.data);
-      setRestaurantUpdateLoaded(false);
+      setRestaurant(response.data[0]);
+      setUpdateTableLoading(false);
     } catch (error: any) {
       const resMessage =
         (error.response &&
@@ -165,8 +156,33 @@ const Home: React.FC = () => {
         error.message ||
         error.toString();
 
-      setRestaurantUpdateLoaded(false);
-      setRestaurantUpdateError(resMessage);
+      setUpdateTableLoading(false);
+      addToast(resMessage, {
+        appearance: "error",
+      });
+    }
+  };
+
+  const handleRemoveFromQueue = async (queueId: string) => {
+    setRestaurantUpdateLoading(true);
+
+    try {
+      const response = await removeFromQueue(queueId);
+
+      setRestaurant(response.data);
+      setRestaurantUpdateLoading(false);
+    } catch (error: any) {
+      const resMessage =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      setRestaurantUpdateLoading(false);
+      addToast(resMessage, {
+        appearance: "error",
+      });
     }
   };
 
@@ -176,62 +192,37 @@ const Home: React.FC = () => {
 
   return (
     <div className="container">
-      <header className="general-setting-container">
-        <GeneralSetting
-          restaurant={restaurant}
-          handleGeneralSetting={handleGeneralSetting}
-          loading={restaurantUpdateLoaded}
-          message={restaurantUpdateError}
-        />
-      </header>
+      {restaurantLoaded ? (
+        <>
+          <header className="general-setting-container">
+            <GeneralSetting
+              restaurant={restaurant}
+              handleGeneralSetting={handleGeneralSetting}
+              loading={restaurantUpdateLoading}
+            />
+          </header>
 
-      {restaurant && (
-        <section>
-          <CurrentTableStatus
-            tables={restaurant.tables}
-            handleAddNewTable={handleAddNewTable}
-            removeTable={handleRemoveTable}
-            setTableAsAvailable={handleSetTableAsAvailable}
-            loading={restaurantUpdateLoaded}
-            message={restaurantUpdateError}
-          />
-          <CurrentQueueStatus
-            queues={restaurant.queues}
-            removeFromQueue={handleRemoveFromQueue}
-          />
-
-          {/* <h3> Restaurant queue status</h3>
-          <table className="table">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">First</th>
-                <th scope="col">Last</th>
-                <th scope="col">Handle</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row">1</th>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
-              </tr>
-              <tr>
-                <th scope="row">2</th>
-                <td>Jacob</td>
-                <td>Thornton</td>
-                <td>@fat</td>
-              </tr>
-              <tr>
-                <th scope="row">3</th>
-                <td>Larry</td>
-                <td>the Bird</td>
-                <td>@twitter</td>
-              </tr>
-            </tbody>
-          </table> */}
-        </section>
+          {restaurant && (
+            <section>
+              <CurrentTableStatus
+                tables={restaurant.tables}
+                handleAddNewTable={handleAddNewTable}
+                removeTable={handleRemoveTable}
+                setTableAsAvailable={handleSetTableAsAvailable}
+                loadingAddTable={addTableLoading}
+                loadingRemoveTable={removeTableLoading}
+                loadingUpdateTable={updateTableLoading}
+              />
+              <CurrentQueueStatus
+                queues={restaurant.queues}
+                removeFromQueue={handleRemoveFromQueue}
+                loadingRemoveQueue={removeQueueLoading}
+              />
+            </section>
+          )}
+        </>
+      ) : (
+        <span className="spinner-border spinner-border-sm"></span>
       )}
     </div>
   );

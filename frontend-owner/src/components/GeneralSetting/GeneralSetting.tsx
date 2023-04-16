@@ -8,14 +8,12 @@ type Props = {
   restaurant: IRestaurant | null;
   handleGeneralSetting: any;
   loading: boolean;
-  message: string;
 };
 
 const GeneralSetting: React.FC<Props> = ({
   restaurant,
   handleGeneralSetting,
   loading,
-  message,
 }) => {
   const [fomValues, setFomValues] = useState<{
     maxNumberOfTables: number;
@@ -105,14 +103,6 @@ const GeneralSetting: React.FC<Props> = ({
                 <span>Update</span>
               </button>
             </div>
-
-            {message && (
-              <div className="form-group">
-                <div className="alert alert-danger" role="alert">
-                  {message}
-                </div>
-              </div>
-            )}
           </Form>
         </Formik>
       </div>

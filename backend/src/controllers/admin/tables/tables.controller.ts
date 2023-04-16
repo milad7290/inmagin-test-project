@@ -11,12 +11,15 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
+import * as _ from "lodash";
 import { CreateTableDto } from "src/models/dto/admin/table/create-table.dto";
 import { SetAsAvailableTableDto } from "src/models/dto/admin/table/set-as-available-table.dto";
 import { RestaurantEntity } from "src/models/entities/restaurant.entity";
 import { TableEntity } from "src/models/entities/table.entity";
 import { ChairsService } from "src/services/db/chairs/chairs.service";
+import { QueuesService } from "src/services/db/queues/queues.service";
 import { RestaurantsService } from "src/services/db/restaurants/restaurants.service";
+import { QueueCheckService } from "src/services/queue/queue-check.service";
 import { TablesService } from "../../../services/db/tables/tables.service";
 
 @Controller("admin/tables")
@@ -24,7 +27,9 @@ export class TablesController {
   constructor(
     private restaurantsService: RestaurantsService,
     private tablesService: TablesService,
-    private chairService: ChairsService
+    private chairService: ChairsService,
+    private queuesService: QueuesService,
+    private queueCheckService: QueueCheckService
   ) {}
 
   @Get(":id")
@@ -81,26 +86,53 @@ export class TablesController {
     ]);
   }
 
-  @Patch()
+  @Patch("setTableAsAvailable")
   @UseGuards(AuthGuard("jwt"))
   async setTableAsAvailable(
     @Body() dto: SetAsAvailableTableDto
-  ): Promise<RestaurantEntity> {
+  ): Promise<[RestaurantEntity, string]> {
     const foundedTable = await this.tablesService.findOne(dto.tableId);
 
     if (!foundedTable) {
       throw new HttpException("Table not found", HttpStatus.I_AM_A_TEAPOT);
     }
 
-    const updatedTable = await this.tablesService.save({
-      id: dto.tableId,
-      isAvailable: true,
-    });
+    const [firstInQueue, updatedTable] = await Promise.all([
+      this.queuesService.getMinimumQueueNoItem(foundedTable.restaurantId),
+      this.tablesService.save({
+        id: dto.tableId,
+        isAvailable: true,
+      }),
+    ]);
 
-    return this.restaurantsService.findOneWithRelations(
-      updatedTable.restaurantId,
-      ["tables", "queues", "owner"]
+    const availableTables = await this.tablesService.findAvailable(
+      foundedTable.restaurantId
     );
+
+    let queueMessage = "";
+    if (firstInQueue && availableTables.length > 0) {
+      const [weHaveEnoughTablesForHeadCount, canBeSetForaCustomer] =
+        await this.queueCheckService.checkAvailability(
+          availableTables,
+          firstInQueue.headcount
+        );
+
+      if (weHaveEnoughTablesForHeadCount) {
+        await this.queuesService.remove([firstInQueue.id]);
+        const tableList = _.map(canBeSetForaCustomer, "name").join(" and ");
+        queueMessage = `For the queue number ${firstInQueue.queueNo} we need ${canBeSetForaCustomer.length} tables, head to Table ${tableList}`;
+      } else {
+        queueMessage = `For the queue number ${firstInQueue.queueNo} we still need mor available tablas`;
+      }
+    }
+
+    const updatedRestaurant =
+      await this.restaurantsService.findOneWithRelations(
+        updatedTable.restaurantId,
+        ["tables", "queues", "owner"]
+      );
+
+    return [updatedRestaurant, queueMessage];
   }
 
   @Delete(":id")
