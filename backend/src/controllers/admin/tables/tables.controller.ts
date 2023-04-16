@@ -12,7 +12,6 @@ import { CreateTableDto } from "src/models/dto/admin/table/create-table.dto";
 import { TableEntity } from "src/models/entities/table.entity";
 import { ChairsService } from "src/services/db/chairs/chairs.service";
 import { RestaurantsService } from "src/services/db/restaurants/restaurants.service";
-import { Raw } from "typeorm";
 import { TablesService } from "../../../services/db/tables/tables.service";
 
 @Controller("admin/tables")
@@ -44,13 +43,8 @@ export class TablesController {
     // @GetUser() user: UserEntity,
     @Body() dto: CreateTableDto
   ): Promise<TableEntity> {
-    const [foundTable, restaurant] = await Promise.all([
-      this.tablesService.findOneBy(null, [
-        {
-          name: Raw((alias) => `LOWER(${alias}) = '${dto.name.toLowerCase()}'`),
-          restaurantId: dto.restaurantId,
-        },
-      ]),
+    const [resultOrder, restaurant] = await Promise.all([
+      this.tablesService.getOneMaximumCodeSequence(dto.restaurantId),
       this.restaurantService.findOne(dto.restaurantId),
     ]);
 
@@ -58,15 +52,9 @@ export class TablesController {
       throw new HttpException("Restaurant not found", HttpStatus.I_AM_A_TEAPOT);
     }
 
-    if (foundTable) {
-      throw new HttpException(
-        "The table with this name already exist",
-        HttpStatus.I_AM_A_TEAPOT
-      );
-    }
-
     const createdTable = await this.tablesService.save({
-      name: dto.name,
+      order: resultOrder.max ? resultOrder.max + 1 : 1,
+      name: resultOrder.max ? `T${resultOrder.max + 1}` : "T1",
       restaurant: restaurant,
       chairsNo: dto.chairNo,
       isAvailable: true,

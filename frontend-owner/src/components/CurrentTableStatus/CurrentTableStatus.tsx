@@ -20,10 +20,8 @@ const CurrentTableStatus: React.FC<Props> = ({
   const [newTableView, setNewTableView] = useState<boolean>(false);
 
   const [fomValues, setFomValues] = useState<{
-    name: string;
     chairNo: number;
   }>({
-    name: "",
     chairNo: 0,
   });
 
@@ -36,7 +34,6 @@ const CurrentTableStatus: React.FC<Props> = ({
   // }, [restaurant]);
 
   const validationSchema = Yup.object().shape({
-    name: Yup.string().required("This field is required!"),
     chairNo: Yup.number()
       .required("This field is required!")
       .test(
@@ -61,16 +58,6 @@ const CurrentTableStatus: React.FC<Props> = ({
                 enableReinitialize={true}
               >
                 <Form>
-                  <div className="form-group">
-                    <label htmlFor="name">Name</label>
-                    <Field name="name" type="text" className="form-control" />
-                    <ErrorMessage
-                      name="name"
-                      component="div"
-                      className="alert alert-danger"
-                    />
-                  </div>
-
                   <div className="form-group">
                     <label htmlFor="chairNo">Chair no</label>
                     <Field

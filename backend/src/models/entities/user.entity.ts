@@ -1,5 +1,5 @@
 import { Exclude } from "class-transformer";
-import { Column, Entity, OneToOne } from "typeorm";
+import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
 import { BaseEntity } from "./base.entity";
 import { RestaurantEntity } from "./restaurant.entity";
 
@@ -16,5 +16,6 @@ export class UserEntity extends BaseEntity<UserEntity> {
   password: string;
 
   @OneToOne((type) => RestaurantEntity, (restaurant) => restaurant.owner)
+  @JoinColumn()
   restaurant: RestaurantEntity;
 }

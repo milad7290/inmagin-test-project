@@ -22,7 +22,7 @@ const Home: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
-        const response = await getCurrentRestaurant("643a8a80fac36b6bb66a5bca");
+        const response = await getCurrentRestaurant("643b71739f841212df75c95d");
 
         setRestaurant(response.data);
       } catch (error: any) {
@@ -65,11 +65,8 @@ const Home: React.FC = () => {
     }
   };
 
-  const handleAddNewTable = async (formValue: {
-    name: string;
-    chairNo: number;
-  }) => {
-    const { name, chairNo } = formValue;
+  const handleAddNewTable = async (formValue: { chairNo: number }) => {
+    const { chairNo } = formValue;
 
     setRestaurantUpdateError("");
     setRestaurantUpdateLoaded(true);
@@ -78,7 +75,6 @@ const Home: React.FC = () => {
       try {
         const response = await createNewTable({
           restaurantId: restaurant.id,
-          name,
           chairNo,
         });
 

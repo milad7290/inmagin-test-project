@@ -10,6 +10,9 @@ export class QueueEntity extends BaseEntity<QueueEntity> {
   @Column()
   headcount: number;
 
+  @Column("uuid")
+  restaurantId: string;
+
   @ManyToOne((type) => RestaurantEntity, (restaurant) => restaurant.queues)
   restaurant: RestaurantEntity;
 }

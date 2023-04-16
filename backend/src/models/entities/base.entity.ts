@@ -1,8 +1,8 @@
-import { CreateDateColumn, ObjectID, ObjectIdColumn } from "typeorm";
+import { CreateDateColumn, PrimaryGeneratedColumn } from "typeorm";
 
 export abstract class BaseEntity<T> {
-  @ObjectIdColumn()
-  id: ObjectID;
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
 
   @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   createDateTime: Date;

@@ -6,6 +6,9 @@ import { RestaurantEntity } from "./restaurant.entity";
 @Entity({ name: "table" })
 export class TableEntity extends BaseEntity<TableEntity> {
   @Column()
+  order: number;
+
+  @Column()
   name: string;
 
   @Column()
@@ -13,6 +16,9 @@ export class TableEntity extends BaseEntity<TableEntity> {
 
   @Column()
   isAvailable: boolean;
+
+  @Column("uuid")
+  restaurantId: string;
 
   @ManyToOne((type) => RestaurantEntity, (restaurant) => restaurant.tables)
   restaurant: RestaurantEntity;

@@ -7,6 +7,9 @@ export class ChairEntity extends BaseEntity<ChairEntity> {
   @Column()
   name: string;
 
+  @Column("uuid")
+  tableId: string;
+
   @ManyToOne((type) => TableEntity, (table) => table.chairs)
   table: TableEntity;
 }
