@@ -6,12 +6,19 @@ import {
   Param,
   Query,
 } from "@nestjs/common";
+import * as _ from "lodash";
 import { RestaurantEntity } from "src/models/entities/restaurant.entity";
 import { RestaurantsService } from "src/services/db/restaurants/restaurants.service";
+import { TablesService } from "src/services/db/tables/tables.service";
+import { QueuesService } from "./../../services/db/queues/queues.service";
 
 @Controller("restaurants")
 export class RestaurantsController {
-  constructor(private restaurantsService: RestaurantsService) {}
+  constructor(
+    private restaurantsService: RestaurantsService,
+    private tablesService: TablesService,
+    private queuesService: QueuesService
+  ) {}
 
   @Get(":name")
   async getOne(@Param("name") name: string): Promise<RestaurantEntity> {
@@ -33,23 +40,52 @@ export class RestaurantsController {
     @Param("id") id: string,
     @Query("headCount") headCount: number
   ): Promise<string> {
-    try {
-      await this.restaurantsService.findOneWithRelations(id, [
-        "tables",
-        "queues",
-        "owner",
-      ]);
-    } catch (error) {
+    const [availableTables, restaurant] = await Promise.all([
+      this.tablesService.findAvailable(id),
+      this.restaurantsService.findOne(id),
+    ]);
+
+    const customerHeadCount = Number(headCount);
+
+    let availableSoFar = 0;
+    let canBeSetForaCustomer = [];
+    let weHaveEnough = false;
+
+    for (let i = 0; i < availableTables.length; i++) {
+      const element = availableTables[i];
+
+      availableSoFar = availableSoFar + element.chairsNo;
+      canBeSetForaCustomer.push({ id: element.id, name: element.name });
+
+      if (availableSoFar >= customerHeadCount) {
+        weHaveEnough = true;
+        break;
+      }
+    }
+
+    if (weHaveEnough) {
+      const tableList = _.map(canBeSetForaCustomer, "name").join(" and ");
+      await Promise.all(
+        canBeSetForaCustomer.map(async (table) => {
+          await this.tablesService.updateOne(table.id, {
+            isAvailable: false,
+          });
+        })
+      );
+      return `${canBeSetForaCustomer.length} tables required, head to Table ${tableList}`;
+    } else {
+      const maxResult = await this.queuesService.getOneMaximumQueueNo(id);
+      const generatedQueueNo = maxResult.max ? maxResult.max + 1 : 101;
+      await this.queuesService.save({
+        queueNo: generatedQueueNo,
+        headcount: customerHeadCount,
+        restaurant: restaurant,
+      });
+
       throw new HttpException(
-        "No restaurant founded",
+        `Sorry there is not enough available table right now, we put you on waiting queue, here is your queue numberQ:${generatedQueueNo}`,
         HttpStatus.I_AM_A_TEAPOT
       );
     }
-
-    if (Number(headCount) === 5) {
-      throw new HttpException("Wrong headcount", HttpStatus.I_AM_A_TEAPOT);
-    }
-
-    return `${headCount} Ok`;
   }
 }

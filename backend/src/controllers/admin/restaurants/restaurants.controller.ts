@@ -73,10 +73,7 @@ export class RestaurantsController {
 
   @Patch()
   @UseGuards(AuthGuard("jwt"))
-  async update(
-    // @GetUser() user: UserEntity,
-    @Body() dto: UpdateRestaurantDto
-  ): Promise<RestaurantEntity> {
+  async update(@Body() dto: UpdateRestaurantDto): Promise<RestaurantEntity> {
     const foundRestaurant = await this.restaurantsService.findOne(dto.id);
 
     if (!foundRestaurant) {

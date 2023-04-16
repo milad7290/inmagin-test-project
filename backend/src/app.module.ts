@@ -38,13 +38,6 @@ import { configService } from "./services/config/config.service";
       ],
       synchronize: true,
     }),
-    // TypeOrmModule.forFeature([
-    //   RestaurantEntity,
-    //   UserEntity,
-    //   TableEntity,
-    //   ChairEntity,
-    //   QueueEntity,
-    // ]),
     AdminModule,
     RestaurantModule,
   ],

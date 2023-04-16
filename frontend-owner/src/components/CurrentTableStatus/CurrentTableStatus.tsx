@@ -1,11 +1,11 @@
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import React, { useState } from "react";
 import * as Yup from "yup";
-import { IRestaurant } from "../../models/entities/restaurant.entity";
+import { ITable } from "../../models/entities/table.entity";
 import "./CurrentTableStatus.css";
 
 type Props = {
-  restaurant: IRestaurant;
+  tables: ITable[];
   handleAddNewTable: any;
   removeTable: (tableId: string) => void;
   setTableAsAvailable: (tableId: string) => void;
@@ -14,7 +14,7 @@ type Props = {
 };
 
 const CurrentTableStatus: React.FC<Props> = ({
-  restaurant,
+  tables,
   handleAddNewTable,
   removeTable,
   setTableAsAvailable,
@@ -42,8 +42,7 @@ const CurrentTableStatus: React.FC<Props> = ({
   return (
     <div>
       <h3>
-        {" "}
-        Current tables status{" "}
+        Current tables status
         <span>
           <div className="form-container">
             {newTableView ? (
@@ -114,8 +113,8 @@ const CurrentTableStatus: React.FC<Props> = ({
           </tr>
         </thead>
         <tbody>
-          {restaurant.tables.length > 0 &&
-            restaurant.tables
+          {tables.length > 0 &&
+            tables
               .sort((a, b) => a.order - b.order)
               .map((table) => {
                 return (

@@ -47,7 +47,7 @@ export class TablesController {
   @UseGuards(AuthGuard("jwt"))
   async create(@Body() dto: CreateTableDto): Promise<RestaurantEntity> {
     const [resultOrder, restaurant] = await Promise.all([
-      this.tablesService.getOneMaximumCodeSequence(dto.restaurantId),
+      this.tablesService.getOneMaximumOrder(dto.restaurantId),
       this.restaurantsService.findOne(dto.restaurantId),
     ]);
 

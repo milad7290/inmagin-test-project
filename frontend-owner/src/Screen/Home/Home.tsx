@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import CurrentQueueStatus from "../../components/CurrentQueueStatus/CurrentQueueStatus";
 import CurrentTableStatus from "../../components/CurrentTableStatus/CurrentTableStatus";
 import GeneralSetting from "../../components/GeneralSetting/GeneralSetting";
 import { IRestaurant } from "../../models/entities/restaurant.entity";
 import * as AuthService from "../../services/auth.service";
+import { removeFromQueue } from "../../services/queue.service";
 import {
   getCurrentRestaurant,
   updateCurrentRestaurant,
@@ -122,6 +124,28 @@ const Home: React.FC = () => {
     }
   };
 
+  const handleRemoveFromQueue = async (queueId: string) => {
+    setRestaurantUpdateError("");
+    setRestaurantUpdateLoaded(true);
+
+    try {
+      const response = await removeFromQueue(queueId);
+
+      setRestaurant(response.data);
+      setRestaurantUpdateLoaded(false);
+    } catch (error: any) {
+      const resMessage =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      setRestaurantUpdateLoaded(false);
+      setRestaurantUpdateError(resMessage);
+    }
+  };
+
   const handleSetTableAsAvailable = async (tableId: string) => {
     setRestaurantUpdateError("");
     setRestaurantUpdateLoaded(true);
@@ -164,15 +188,19 @@ const Home: React.FC = () => {
       {restaurant && (
         <section>
           <CurrentTableStatus
-            restaurant={restaurant}
+            tables={restaurant.tables}
             handleAddNewTable={handleAddNewTable}
             removeTable={handleRemoveTable}
             setTableAsAvailable={handleSetTableAsAvailable}
             loading={restaurantUpdateLoaded}
             message={restaurantUpdateError}
           />
+          <CurrentQueueStatus
+            queues={restaurant.queues}
+            removeFromQueue={handleRemoveFromQueue}
+          />
 
-          <h3> Restaurant queue status</h3>
+          {/* <h3> Restaurant queue status</h3>
           <table className="table">
             <thead>
               <tr>
@@ -202,7 +230,7 @@ const Home: React.FC = () => {
                 <td>@twitter</td>
               </tr>
             </tbody>
-          </table>
+          </table> */}
         </section>
       )}
     </div>
