@@ -11,7 +11,7 @@ export const login = async (data: LoginDto) => {
   );
   if (response.data.token) {
     localStorage.setItem("user", JSON.stringify(response.data.user));
-    localStorage.setItem("token", JSON.stringify(response.data.user));
+    localStorage.setItem("token", response.data.token);
   }
 };
 

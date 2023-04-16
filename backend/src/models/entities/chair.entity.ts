@@ -10,6 +10,8 @@ export class ChairEntity extends BaseEntity<ChairEntity> {
   @Column("uuid")
   tableId: string;
 
-  @ManyToOne((type) => TableEntity, (table) => table.chairs)
+  @ManyToOne((type) => TableEntity, (table) => table.chairs, {
+    onDelete: "CASCADE",
+  })
   table: TableEntity;
 }

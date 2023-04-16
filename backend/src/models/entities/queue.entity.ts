@@ -13,6 +13,8 @@ export class QueueEntity extends BaseEntity<QueueEntity> {
   @Column("uuid")
   restaurantId: string;
 
-  @ManyToOne((type) => RestaurantEntity, (restaurant) => restaurant.queues)
+  @ManyToOne((type) => RestaurantEntity, (restaurant) => restaurant.queues, {
+    onDelete: "CASCADE",
+  })
   restaurant: RestaurantEntity;
 }

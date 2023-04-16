@@ -5,8 +5,10 @@ import { IRestaurant } from "../../models/entities/restaurant.entity";
 import "./CurrentTableStatus.css";
 
 type Props = {
-  restaurant: IRestaurant | null;
+  restaurant: IRestaurant;
   handleAddNewTable: any;
+  removeTable: (tableId: string) => void;
+  setTableAsAvailable: (tableId: string) => void;
   loading: boolean;
   message: string;
 };
@@ -14,6 +16,8 @@ type Props = {
 const CurrentTableStatus: React.FC<Props> = ({
   restaurant,
   handleAddNewTable,
+  removeTable,
+  setTableAsAvailable,
   loading,
   message,
 }) => {
@@ -24,14 +28,6 @@ const CurrentTableStatus: React.FC<Props> = ({
   }>({
     chairNo: 0,
   });
-
-  // useEffect(() => {
-  //   if (restaurant && restaurant.id) {
-  //     setFomValues({
-  //       name: restaurant.name,
-  //     });
-  //   }
-  // }, [restaurant]);
 
   const validationSchema = Yup.object().shape({
     chairNo: Yup.number()
@@ -111,31 +107,50 @@ const CurrentTableStatus: React.FC<Props> = ({
       <table className="table">
         <thead>
           <tr>
-            <th scope="col">#</th>
-            <th scope="col">First</th>
-            <th scope="col">Last</th>
-            <th scope="col">Handle</th>
+            <th scope="col">Name</th>
+            <th scope="col">Availability</th>
+            <th scope="col">Chair count</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <th scope="row">1</th>
-            <td>Mark</td>
-            <td>Otto</td>
-            <td>@mdo</td>
-          </tr>
-          <tr>
-            <th scope="row">2</th>
-            <td>Jacob</td>
-            <td>Thornton</td>
-            <td>@fat</td>
-          </tr>
-          <tr>
-            <th scope="row">3</th>
-            <td>Larry</td>
-            <td>the Bird</td>
-            <td>@twitter</td>
-          </tr>
+          {restaurant.tables.length > 0 &&
+            restaurant.tables
+              .sort((a, b) => a.order - b.order)
+              .map((table) => {
+                return (
+                  <tr key={table.order}>
+                    <th scope="row">{table.name}</th>
+                    <td style={{ color: table.isAvailable ? "green" : "gray" }}>
+                      {table.isAvailable ? "Available" : "Occupied"}
+                    </td>
+                    <td>{table.chairsNo}</td>
+                    <td>
+                      {table.isAvailable ? (
+                        <button
+                          onClick={() => {
+                            removeTable(table.id);
+                          }}
+                          type="button"
+                          className="btn btn-danger"
+                        >
+                          remove table
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setTableAsAvailable(table.id);
+                          }}
+                          type="button"
+                          className="btn btn-success"
+                        >
+                          Set as available
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
         </tbody>
       </table>
     </div>

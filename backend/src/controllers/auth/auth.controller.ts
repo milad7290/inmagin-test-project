@@ -8,7 +8,6 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
-import { ObjectID } from "mongodb";
 import { PasswordCryptographerService } from "src/services/password-cryptographer/password-cryptographer.service";
 import { AuthUser } from "../../common/decorators/auth-user.decorator";
 import { LoginDto } from "../../models/dto/auth/login.dto";
@@ -95,7 +94,7 @@ export class AuthController {
   private async generateToken(user: UserEntity): Promise<string> {
     return this.authService.createToken({
       email: user.email,
-      id: ObjectID(user.id),
+      id: user.id,
     });
   }
 }

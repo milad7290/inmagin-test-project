@@ -20,7 +20,9 @@ export class TableEntity extends BaseEntity<TableEntity> {
   @Column("uuid")
   restaurantId: string;
 
-  @ManyToOne((type) => RestaurantEntity, (restaurant) => restaurant.tables)
+  @ManyToOne((type) => RestaurantEntity, (restaurant) => restaurant.tables, {
+    onDelete: "CASCADE",
+  })
   restaurant: RestaurantEntity;
 
   @OneToMany((type) => ChairEntity, (chair) => chair.table)

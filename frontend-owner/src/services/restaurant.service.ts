@@ -12,5 +12,7 @@ export const getCurrentRestaurant = (id: string) => {
 };
 
 export const updateCurrentRestaurant = (data: UpdateRestaurantDto) => {
-  return axios.patch<IRestaurant>(API_URL + `/admin/restaurants`, data);
+  return axios.patch<IRestaurant>(API_URL + `/admin/restaurants`, data, {
+    headers: authHeader(),
+  });
 };

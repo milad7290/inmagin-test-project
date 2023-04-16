@@ -19,7 +19,7 @@ const Home: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
-        const response = await getCurrentRestaurant("643a8a80fac36b6bb66a5bca");
+        const response = await getCurrentRestaurant("Test restaurant");
 
         setRestaurant(response.data);
       } catch (error: any) {

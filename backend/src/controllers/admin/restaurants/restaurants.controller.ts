@@ -6,9 +6,9 @@ import {
   HttpStatus,
   Param,
   Patch,
-  Query,
+  UseGuards,
 } from "@nestjs/common";
-import { ObjectID } from "mongodb";
+import { AuthGuard } from "@nestjs/passport";
 import { UpdateRestaurantDto } from "src/models/dto/admin/restaurant/update-restaurant.dto";
 import { RestaurantEntity } from "src/models/entities/restaurant.entity";
 import { UsersService } from "src/services/db/users/users.service";
@@ -52,70 +52,46 @@ export class RestaurantsController {
   }
 
   @Get(":id")
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard("jwt"))
   async getOne(@Param("id") id: string): Promise<RestaurantEntity> {
     try {
-      const result = await this.restaurantsService.findOneWithRelations(
-        ObjectID(id),
-        ["tables", "queues", "owner"]
-      );
-
-      return result;
-    } catch (error) {
-      throw new HttpException(
-        "there is no restaurant",
-        HttpStatus.I_AM_A_TEAPOT
-      );
-    }
-  }
-
-  @Get("checkForAvailability/:id")
-  // @UseGuards(AuthGuard('jwt'))
-  async checkForAvailability(
-    @Param("id") id: string,
-    @Query("headCount") headCount: number
-  ): Promise<string> {
-    try {
-      await this.restaurantsService.findOneWithRelations(ObjectID(id), [
+      const result = await this.restaurantsService.findOneWithRelations(id, [
         "tables",
         "queues",
         "owner",
       ]);
+
+      if (!result) {
+        throw new HttpException("there is no restaurant", HttpStatus.NOT_FOUND);
+      }
+
+      return result;
     } catch (error) {
-      throw new HttpException(
-        "No restaurant founded",
-        HttpStatus.I_AM_A_TEAPOT
-      );
+      throw new HttpException(error.message, HttpStatus.I_AM_A_TEAPOT);
     }
-
-    if (Number(headCount) === 5) {
-      throw new HttpException("Wrong headcount", HttpStatus.I_AM_A_TEAPOT);
-    }
-
-    return `${headCount} Ok`;
   }
 
   @Patch()
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard("jwt"))
   async update(
     // @GetUser() user: UserEntity,
     @Body() dto: UpdateRestaurantDto
   ): Promise<RestaurantEntity> {
-    /** before we update (edit) entity we must reveal the current entity */
-    /** try to fine similar entity with same update info and prevent to save the same entities */
     const foundRestaurant = await this.restaurantsService.findOne(dto.id);
 
-    /** if we not found existing record entity we throw error */
     if (!foundRestaurant) {
       throw new HttpException("Restaurant not found", HttpStatus.I_AM_A_TEAPOT);
     }
 
-    /** save (update) existing entity */
     await this.restaurantsService.updateOne(dto.id, {
       maxNumberOfChairsPerTable: dto.maxNumberOfChairsPerTable,
       maxNumberOfTables: dto.maxNumberOfTables,
     });
 
-    return this.restaurantsService.findOne(dto.id);
+    return this.restaurantsService.findOneWithRelations(dto.id, [
+      "tables",
+      "queues",
+      "owner",
+    ]);
   }
 }

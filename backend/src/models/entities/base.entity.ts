@@ -1,10 +1,10 @@
-import { CreateDateColumn, PrimaryGeneratedColumn } from "typeorm";
+import { Column, PrimaryGeneratedColumn } from "typeorm";
 
 export abstract class BaseEntity<T> {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @CreateDateColumn({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
+  @Column("date", { default: () => "(CURRENT_DATE)" })
   createDateTime: Date;
 
   constructor(item?: Partial<T>) {

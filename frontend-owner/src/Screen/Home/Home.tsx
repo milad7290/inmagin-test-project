@@ -8,7 +8,11 @@ import {
   getCurrentRestaurant,
   updateCurrentRestaurant,
 } from "../../services/restaurant.service";
-import { createNewTable } from "../../services/table.service";
+import {
+  createNewTable,
+  removeTable,
+  setTableAsAvailable,
+} from "../../services/table.service";
 import "./Home.css";
 
 const Home: React.FC = () => {
@@ -20,17 +24,19 @@ const Home: React.FC = () => {
   const user = AuthService.getCurrentUser();
 
   useEffect(() => {
-    (async () => {
-      try {
-        const response = await getCurrentRestaurant("643b71739f841212df75c95d");
+    if (user && user.restaurant) {
+      (async () => {
+        try {
+          const response = await getCurrentRestaurant(user.restaurant.id);
 
-        setRestaurant(response.data);
-      } catch (error: any) {
-        setRestaurantError(error);
-      } finally {
-        setRestaurantLoaded(true);
-      }
-    })();
+          setRestaurant(response.data);
+        } catch (error: any) {
+          setRestaurantError(error);
+        } finally {
+          setRestaurantLoaded(true);
+        }
+      })();
+    }
   }, []);
 
   const handleGeneralSetting = async (formValue: {
@@ -78,8 +84,7 @@ const Home: React.FC = () => {
           chairNo,
         });
 
-        console.log("response", response);
-        // setRestaurant(response.data);
+        setRestaurant(response.data);
         setRestaurantUpdateLoaded(false);
       } catch (error: any) {
         const resMessage =
@@ -92,6 +97,52 @@ const Home: React.FC = () => {
         setRestaurantUpdateLoaded(false);
         setRestaurantUpdateError(resMessage);
       }
+    }
+  };
+
+  const handleRemoveTable = async (tableId: string) => {
+    setRestaurantUpdateError("");
+    setRestaurantUpdateLoaded(true);
+
+    try {
+      const response = await removeTable(tableId);
+
+      setRestaurant(response.data);
+      setRestaurantUpdateLoaded(false);
+    } catch (error: any) {
+      const resMessage =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      setRestaurantUpdateLoaded(false);
+      setRestaurantUpdateError(resMessage);
+    }
+  };
+
+  const handleSetTableAsAvailable = async (tableId: string) => {
+    setRestaurantUpdateError("");
+    setRestaurantUpdateLoaded(true);
+
+    try {
+      const response = await setTableAsAvailable({
+        tableId,
+      });
+
+      setRestaurant(response.data);
+      setRestaurantUpdateLoaded(false);
+    } catch (error: any) {
+      const resMessage =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      setRestaurantUpdateLoaded(false);
+      setRestaurantUpdateError(resMessage);
     }
   };
 
@@ -110,46 +161,50 @@ const Home: React.FC = () => {
         />
       </header>
 
-      <section>
-        <CurrentTableStatus
-          restaurant={restaurant}
-          handleAddNewTable={handleAddNewTable}
-          loading={restaurantUpdateLoaded}
-          message={restaurantUpdateError}
-        />
+      {restaurant && (
+        <section>
+          <CurrentTableStatus
+            restaurant={restaurant}
+            handleAddNewTable={handleAddNewTable}
+            removeTable={handleRemoveTable}
+            setTableAsAvailable={handleSetTableAsAvailable}
+            loading={restaurantUpdateLoaded}
+            message={restaurantUpdateError}
+          />
 
-        <h3> Restaurant queue status</h3>
-        <table className="table">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">First</th>
-              <th scope="col">Last</th>
-              <th scope="col">Handle</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">1</th>
-              <td>Mark</td>
-              <td>Otto</td>
-              <td>@mdo</td>
-            </tr>
-            <tr>
-              <th scope="row">2</th>
-              <td>Jacob</td>
-              <td>Thornton</td>
-              <td>@fat</td>
-            </tr>
-            <tr>
-              <th scope="row">3</th>
-              <td>Larry</td>
-              <td>the Bird</td>
-              <td>@twitter</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+          <h3> Restaurant queue status</h3>
+          <table className="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">First</th>
+                <th scope="col">Last</th>
+                <th scope="col">Handle</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">1</th>
+                <td>Mark</td>
+                <td>Otto</td>
+                <td>@mdo</td>
+              </tr>
+              <tr>
+                <th scope="row">2</th>
+                <td>Jacob</td>
+                <td>Thornton</td>
+                <td>@fat</td>
+              </tr>
+              <tr>
+                <th scope="row">3</th>
+                <td>Larry</td>
+                <td>the Bird</td>
+                <td>@twitter</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      )}
     </div>
   );
 };
