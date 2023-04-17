@@ -6,6 +6,10 @@ import { TablesService } from "../db/tables/tables.service";
 export class QueueCheckService {
   constructor(private tablesService: TablesService) {}
 
+  /**
+   * @description This function will check the availability of the restaurant available
+   * tables for incoming customer base on customer's headcount
+   */
   async checkAvailability(
     availableTables: TableEntity[],
     customerHeadCount: number

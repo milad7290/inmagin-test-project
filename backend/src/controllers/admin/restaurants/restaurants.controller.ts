@@ -27,6 +27,10 @@ export class RestaurantsController {
     this.initSeedData();
   }
 
+  /**
+   * @description This function is called to create primary data in mysql (create the restaurant and the owner) with .env data
+   * please make sure you create database manually in mysql base on (.env "DATABASE_NAME")
+   */
   async initSeedData() {
     let foundedOwner = await this.usersService.findOneBy({
       email: this.configService.SeedDataConfig.seedEmail,
