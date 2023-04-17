@@ -18,6 +18,12 @@ const CurrentQueueStatus: React.FC<Props> = ({
   return (
     <div>
       <h3>Restaurant queue status</h3>
+      <div className="alert alert-info" role="alert">
+        Here is the current restaurant queue status, you always can{" "}
+        <b>remove a customer from queue</b> <br />
+        queue management is dynamic and will change when we make a table{" "}
+        <b>available</b>
+      </div>
       <table className="table">
         <thead>
           <tr>

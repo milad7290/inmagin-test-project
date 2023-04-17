@@ -1,11 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto';
-import { configService } from '../../services/config/config.service';
+import { Injectable } from "@nestjs/common";
+import * as bcrypt from "bcrypt";
+import * as crypto from "crypto";
+import { ConfigService } from "../../services/config/config.service";
 
 @Injectable()
 export class PasswordCryptographerService {
-  private encryptionInfo = configService.getEncryptionInfo();
+  private encryptionInfo: {
+    password: string;
+    algorithm: string;
+  };
+  constructor(readonly configService: ConfigService) {
+    this.encryptionInfo = this.configService.EncryptionInfo;
+  }
 
   /**
    * @description get the password and hash it with bcrypt.
@@ -42,10 +48,10 @@ export class PasswordCryptographerService {
   encrypt(text: string): string {
     const cipher = crypto.createCipher(
       this.encryptionInfo.algorithm,
-      this.encryptionInfo.password,
+      this.encryptionInfo.password
     );
-    let crypted = cipher.update(text, 'utf8', 'hex');
-    crypted += cipher.final('hex');
+    let crypted = cipher.update(text, "utf8", "hex");
+    crypted += cipher.final("hex");
     return crypted;
   }
 
@@ -57,10 +63,10 @@ export class PasswordCryptographerService {
   decrypt(text: string): string {
     const decipher = crypto.createDecipher(
       this.encryptionInfo.algorithm,
-      this.encryptionInfo.password,
+      this.encryptionInfo.password
     );
-    let dec = decipher.update(text, 'hex', 'utf8');
-    dec += decipher.final('utf8');
+    let dec = decipher.update(text, "hex", "utf8");
+    dec += decipher.final("utf8");
     return dec;
   }
 }

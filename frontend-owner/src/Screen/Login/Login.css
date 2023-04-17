@@ -9,7 +9,6 @@
   margin-bottom: 5px;
 }
 
-/* .alert {
-  font-size: 12px;
-  padding: 4px 10px;
-} */
+.card-login {
+  max-width: 350px;
+}

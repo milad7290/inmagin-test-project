@@ -54,13 +54,18 @@ const GeneralSetting: React.FC<Props> = ({
       <div className="card card-container">
         <h5>Restaurant general setting</h5>
 
+        <div className="alert alert-info" role="alert">
+          The general setting of restaurant is <b>dynamic</b>, you can change it
+          any time you want!
+        </div>
+
         <Formik
           initialValues={{ ...fomValues, submit: null }}
           validationSchema={validationSchema}
           onSubmit={handleGeneralSetting}
           enableReinitialize={true}
         >
-          <Form>
+          <Form className="general-form-container">
             <div className="form-group">
               <label htmlFor="maxNumberOfTables">Max no of tables</label>
               <Field
@@ -94,7 +99,7 @@ const GeneralSetting: React.FC<Props> = ({
             <div className="form-group">
               <button
                 type="submit"
-                className="btn btn-primary btn-block"
+                className="btn btn-primary btn-block btn-update"
                 disabled={loading}
               >
                 {loading && (

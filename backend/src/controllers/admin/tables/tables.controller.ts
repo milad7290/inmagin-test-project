@@ -35,17 +35,13 @@ export class TablesController {
   @Get(":id")
   @UseGuards(AuthGuard("jwt"))
   async getOne(@Param("id") id: string): Promise<TableEntity> {
-    try {
-      const result = await this.tablesService.findOne(id);
+    const result = await this.tablesService.findOne(id);
 
-      if (!result) {
-        throw new HttpException("there is no table", HttpStatus.NOT_FOUND);
-      }
-
-      return result;
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.I_AM_A_TEAPOT);
+    if (!result) {
+      throw new HttpException("there is no table", HttpStatus.NOT_FOUND);
     }
+
+    return result;
   }
 
   @Post()
@@ -53,11 +49,27 @@ export class TablesController {
   async create(@Body() dto: CreateTableDto): Promise<RestaurantEntity> {
     const [resultOrder, restaurant] = await Promise.all([
       this.tablesService.getOneMaximumOrder(dto.restaurantId),
-      this.restaurantsService.findOne(dto.restaurantId),
+      this.restaurantsService.findOneWithRelations(dto.restaurantId, [
+        "tables",
+      ]),
     ]);
 
     if (!restaurant) {
-      throw new HttpException("Restaurant not found", HttpStatus.I_AM_A_TEAPOT);
+      throw new HttpException("Restaurant not found", HttpStatus.NOT_FOUND);
+    }
+
+    if (restaurant.tables.length >= restaurant.maxNumberOfTables) {
+      throw new HttpException(
+        `We are already reach the maximum capacity of tables in this restaurant! which is ${restaurant.maxNumberOfTables}`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    if (dto.chairNo > restaurant.maxNumberOfChairsPerTable) {
+      throw new HttpException(
+        `The maximum number of chair for our tables is ${restaurant.maxNumberOfChairsPerTable}`,
+        HttpStatus.BAD_REQUEST
+      );
     }
 
     const createdTable = await this.tablesService.save({
@@ -94,7 +106,7 @@ export class TablesController {
     const foundedTable = await this.tablesService.findOne(dto.tableId);
 
     if (!foundedTable) {
-      throw new HttpException("Table not found", HttpStatus.I_AM_A_TEAPOT);
+      throw new HttpException("Table not found", HttpStatus.NOT_FOUND);
     }
 
     const [firstInQueue, updatedTable] = await Promise.all([
@@ -113,13 +125,18 @@ export class TablesController {
     if (firstInQueue && availableTables.length > 0) {
       const [weHaveEnoughTablesForHeadCount, canBeSetForaCustomer] =
         await this.queueCheckService.checkAvailability(
-          availableTables,
+          availableTables.sort((a, b) => a.chairsNo - b.chairsNo),
           firstInQueue.headcount
         );
 
       if (weHaveEnoughTablesForHeadCount) {
-        await this.queuesService.remove([firstInQueue.id]);
         const tableList = _.map(canBeSetForaCustomer, "name").join(" and ");
+
+        await this.queuesService.updateOne(firstInQueue.id, {
+          isSettled: true,
+          settledReport: `This customer have been headed to Table ${tableList}`,
+        });
+
         queueMessage = `For the queue number ${firstInQueue.queueNo} we need ${canBeSetForaCustomer.length} tables, head to Table ${tableList}`;
       } else {
         queueMessage = `For the queue number ${firstInQueue.queueNo} we still need mor available tablas`;
@@ -141,7 +158,7 @@ export class TablesController {
     const foundedTable = await this.tablesService.findOne(id);
 
     if (!foundedTable) {
-      throw new HttpException("Table not found", HttpStatus.I_AM_A_TEAPOT);
+      throw new HttpException("Table not found", HttpStatus.NOT_FOUND);
     }
 
     await this.tablesService.remove([id]);

@@ -73,7 +73,7 @@ export class AuthController {
     ) {
       throw new HttpException(
         "Username or password is incorrect",
-        HttpStatus.I_AM_A_TEAPOT
+        HttpStatus.NOT_FOUND
       );
     }
 

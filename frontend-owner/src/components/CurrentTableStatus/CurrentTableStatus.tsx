@@ -44,8 +44,14 @@ const CurrentTableStatus: React.FC<Props> = ({
   });
 
   return (
-    <div className="container">
+    <div className="container-tables">
       <h3>Current tables status</h3>
+
+      <div className="alert alert-info" role="alert">
+        Here is the current restaurant tables status, you can{" "}
+        <b>remove a available table</b> or
+        <b>set the occupied ones as available for those on queue</b>
+      </div>
 
       <div className="form-container">
         {newTableView ? (

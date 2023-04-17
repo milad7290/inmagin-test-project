@@ -5,8 +5,10 @@
 h3 {
   margin-bottom: 15px;
 }
-.container {
+.container-tables {
   position: relative;
+  border-bottom: 1px solid darkgray;
+  margin-bottom: 50px;
 }
 .form-container {
   max-width: 300px;

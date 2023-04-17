@@ -5,11 +5,13 @@
 }
 
 .card-container {
-  margin: 0 auto 18px;
+  margin: 0 auto 45px;
   margin-top: 0px;
 }
 
-.card-container.card {
-  max-width: 350px !important;
-  padding: 20px;
+.refresh-btn {
+  position: fixed;
+  bottom: 50px;
+  right: 50px;
+  border-radius: 30px;
 }

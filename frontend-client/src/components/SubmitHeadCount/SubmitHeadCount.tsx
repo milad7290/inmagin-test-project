@@ -13,7 +13,6 @@ type Props = {
 };
 
 const SubmitHeadCount: React.FC<Props> = ({
-  restaurant,
   handleCheckTableAvailability,
   loading,
   message,
@@ -26,14 +25,6 @@ const SubmitHeadCount: React.FC<Props> = ({
   }>({
     headCount: 0,
   });
-
-  // useEffect(() => {
-  //   if (restaurant && restaurant.id) {
-  //     setFomValues({
-  //       name: restaurant.name,
-  //     });
-  //   }
-  // }, [restaurant]);
 
   const validationSchema = Yup.object().shape({
     headCount: Yup.number()

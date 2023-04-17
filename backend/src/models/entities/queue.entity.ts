@@ -10,6 +10,12 @@ export class QueueEntity extends BaseEntity<QueueEntity> {
   @Column()
   headcount: number;
 
+  @Column({ default: false })
+  isSettled: boolean;
+
+  @Column({ default: "" })
+  settledReport: string;
+
   @Column("uuid")
   restaurantId: string;
 

@@ -24,17 +24,15 @@ export class RestaurantsController {
 
   @Get(":name")
   async getOne(@Param("name") name: string): Promise<RestaurantEntity> {
-    try {
-      const result = await this.restaurantsService.findOneBy({ name });
+    const result = await this.restaurantsService.findOneBy({ name }, null, [
+      "queues",
+    ]);
 
-      if (!result) {
-        throw new HttpException("there is no restaurant", HttpStatus.NOT_FOUND);
-      }
-
-      return result;
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.I_AM_A_TEAPOT);
+    if (!result) {
+      throw new HttpException("there is no restaurant", HttpStatus.NOT_FOUND);
     }
+
+    return result;
   }
 
   @Get("checkForAvailability/:id")
@@ -42,16 +40,38 @@ export class RestaurantsController {
     @Param("id") id: string,
     @Query("headCount") headCount: number
   ): Promise<string> {
-    const [availableTables, restaurant] = await Promise.all([
-      this.tablesService.findAvailable(id),
-      this.restaurantsService.findOne(id),
+    const restaurant = await this.restaurantsService.findOneWithRelations(id, [
+      "tables",
     ]);
+
+    if (!restaurant) {
+      throw new HttpException("there is no restaurant", HttpStatus.NOT_FOUND);
+    }
+
+    let allChairs = 0;
+
+    if (restaurant && restaurant.tables) {
+      restaurant.tables.forEach((table) => {
+        allChairs += table.chairsNo;
+      });
+    }
+
+    if (headCount > allChairs) {
+      throw new HttpException(
+        `Sorry your headcount is more than our restaurant capacity`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    const availableTables = restaurant.tables.filter(
+      (item) => item.isAvailable
+    );
 
     const customerHeadCount = Number(headCount);
 
     const [weHaveEnoughTablesForHeadCount, canBeSetForaCustomer] =
       await this.queueCheckService.checkAvailability(
-        availableTables,
+        availableTables.sort((a, b) => a.chairsNo - b.chairsNo),
         customerHeadCount
       );
 
@@ -69,7 +89,7 @@ export class RestaurantsController {
 
       throw new HttpException(
         `Sorry there is not enough available table right now, we put you on waiting queue, here is your queue numberQ:${generatedQueueNo}`,
-        HttpStatus.I_AM_A_TEAPOT
+        HttpStatus.BAD_REQUEST
       );
     }
   }

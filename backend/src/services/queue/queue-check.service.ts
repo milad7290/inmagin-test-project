@@ -15,19 +15,24 @@ export class QueueCheckService {
       canBeSetForaCustomer: { id: string; name: string }[]
     ]
   > {
-    let availableSoFar = 0;
     let canBeSetForaCustomer = [];
     let weHaveEnoughTablesForHeadCount = false;
 
-    for (let i = 0; i < availableTables.length; i++) {
-      const element = availableTables[i];
+    loop1: for (let i = 0; i < customerHeadCount; i++) {
+      let summed = 0;
+      const usedTables = [];
+      const tables = availableTables.filter(
+        (item) => item.chairsNo > customerHeadCount - i
+      );
+      for (const table of tables) {
+        usedTables.push(table);
 
-      availableSoFar = availableSoFar + element.chairsNo;
-      canBeSetForaCustomer.push({ id: element.id, name: element.name });
-
-      if (availableSoFar >= customerHeadCount) {
-        weHaveEnoughTablesForHeadCount = true;
-        break;
+        summed += table.chairsNo;
+        if (summed >= customerHeadCount) {
+          weHaveEnoughTablesForHeadCount = true;
+          canBeSetForaCustomer = usedTables;
+          break loop1;
+        }
       }
     }
 

@@ -55,7 +55,7 @@ const Login: React.FC<Props> = () => {
 
   return (
     <div className="col-md-12">
-      <div className="card card-container">
+      <div className="card card-container card-login">
         <img src="chef.svg" alt="profile-img" className="profile-img-card" />
         <Formik
           initialValues={initialValues}

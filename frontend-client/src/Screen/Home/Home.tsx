@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import CurrentQueueStatus from "../../components/CurrentQueueStatus/CurrentQueueStatus";
 import SubmitHeadCount from "../../components/SubmitHeadCount/SubmitHeadCount";
 import { IRestaurant } from "../../models/entities/restaurant.entity";
 import {
@@ -13,22 +14,26 @@ const Home: React.FC = () => {
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [restaurantError, setRestaurantError] = useState("");
   const [restaurantLoaded, setRestaurantLoaded] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const response = await getCurrentRestaurant("Test restaurant");
+    fetchData();
+    const interval = setInterval(() => {
+      fetchData();
+    }, 10000);
 
-        setRestaurant(response.data);
-      } catch (error: any) {
-        setRestaurantError(error);
-      } finally {
-        setRestaurantLoaded(true);
-      }
-    })();
+    return () => clearInterval(interval);
   }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await getCurrentRestaurant("Test restaurant");
+
+      setRestaurant(response.data);
+    } finally {
+      setRestaurantLoaded(true);
+    }
+  };
 
   const handleCheckTableAvailability = async (formValue: {
     headCount: number;
@@ -61,16 +66,36 @@ const Home: React.FC = () => {
 
   return (
     <div className="container">
-      <section>
-        <h3>May I ask how many people are you?</h3>
-        <SubmitHeadCount
-          restaurant={restaurant}
-          handleCheckTableAvailability={handleCheckTableAvailability}
-          loading={loading}
-          message={error}
-          response={response}
-        />
-      </section>
+      {restaurantLoaded ? (
+        <section>
+          <h3>May I ask how many people are you?</h3>
+          <SubmitHeadCount
+            restaurant={restaurant}
+            handleCheckTableAvailability={handleCheckTableAvailability}
+            loading={loading}
+            message={error}
+            response={response}
+          />
+
+          {restaurant && (
+            <CurrentQueueStatus
+              queues={restaurant.queues.filter((item) => item.isSettled)}
+            />
+          )}
+
+          <button
+            type="button"
+            onClick={() => {
+              fetchData();
+            }}
+            className="btn btn-dark refresh-btn"
+          >
+            Refresh
+          </button>
+        </section>
+      ) : (
+        <span className="spinner-border spinner-border-sm"></span>
+      )}
     </div>
   );
 };

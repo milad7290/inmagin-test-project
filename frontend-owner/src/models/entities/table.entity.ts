@@ -7,6 +7,7 @@ export interface ITable extends IBase {
   name: string;
   chairsNo: number;
   isAvailable: boolean;
+  restaurantId: string;
   restaurant: IRestaurant;
   chairs: IChair[];
 }

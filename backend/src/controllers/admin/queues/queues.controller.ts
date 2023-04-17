@@ -23,17 +23,13 @@ export class QueuesController {
   @Get(":id")
   @UseGuards(AuthGuard("jwt"))
   async getOne(@Param("id") id: string): Promise<QueueEntity> {
-    try {
-      const result = await this.queuesService.findOne(id);
+    const result = await this.queuesService.findOne(id);
 
-      if (!result) {
-        throw new HttpException("there is no queue", HttpStatus.NOT_FOUND);
-      }
-
-      return result;
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.I_AM_A_TEAPOT);
+    if (!result) {
+      throw new HttpException("there is no queue", HttpStatus.NOT_FOUND);
     }
+
+    return result;
   }
 
   @Delete(":id")
@@ -42,7 +38,7 @@ export class QueuesController {
     const foundedTable = await this.queuesService.findOne(id);
 
     if (!foundedTable) {
-      throw new HttpException("Queue not found", HttpStatus.I_AM_A_TEAPOT);
+      throw new HttpException("Queue not found", HttpStatus.NOT_FOUND);
     }
 
     await this.queuesService.remove([id]);

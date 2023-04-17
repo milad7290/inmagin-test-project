@@ -9,24 +9,30 @@ import { RestaurantEntity } from "./models/entities/restaurant.entity";
 import { TableEntity } from "./models/entities/table.entity";
 import { UserEntity } from "./models/entities/user.entity";
 import { AppService } from "./services/app/app.service";
-import { configService } from "./services/config/config.service";
+import { ConfigModule } from "./services/config/config.module";
+import { ConfigService } from "./services/config/config.service";
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: "mysql",
-      host: "127.0.0.1",
-      port: 3306,
-      username: "root",
-      database: configService.getTypeOrmConfig().database,
-      entities: [
-        RestaurantEntity,
-        UserEntity,
-        TableEntity,
-        ChairEntity,
-        QueueEntity,
-      ],
-      synchronize: true,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      // connectionName: "default",
+      useFactory: async (configService: ConfigService) => ({
+        type: "mysql",
+        host: configService.TypeOrmConfig.host,
+        port: configService.TypeOrmConfig.port,
+        username: configService.TypeOrmConfig.username,
+        database: configService.TypeOrmConfig.database,
+        entities: [
+          RestaurantEntity,
+          UserEntity,
+          TableEntity,
+          ChairEntity,
+          QueueEntity,
+        ],
+        synchronize: true,
+      }),
+      inject: [ConfigService],
     }),
     AdminModule,
     RestaurantModule,

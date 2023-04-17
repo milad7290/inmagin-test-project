@@ -31,18 +31,25 @@ const Home: React.FC = () => {
   const user = AuthService.getCurrentUser();
 
   useEffect(() => {
-    if (user && user.restaurant) {
-      (async () => {
-        try {
-          const response = await getCurrentRestaurant(user.restaurant.id);
+    fetchData();
+    const interval = setInterval(() => {
+      fetchData();
+    }, 10000);
 
-          setRestaurant(response.data);
-        } finally {
-          setRestaurantLoaded(true);
-        }
-      })();
-    }
+    return () => clearInterval(interval);
   }, []);
+
+  const fetchData = async () => {
+    if (user && user.restaurant) {
+      try {
+        const response = await getCurrentRestaurant(user.restaurant.id);
+
+        setRestaurant(response.data);
+      } finally {
+        setRestaurantLoaded(true);
+      }
+    }
+  };
 
   const handleGeneralSetting = async (formValue: {
     maxNumberOfTables: number;
@@ -164,13 +171,13 @@ const Home: React.FC = () => {
   };
 
   const handleRemoveFromQueue = async (queueId: string) => {
-    setRestaurantUpdateLoading(true);
+    setRemoveQueueLoading(true);
 
     try {
       const response = await removeFromQueue(queueId);
 
       setRestaurant(response.data);
-      setRestaurantUpdateLoading(false);
+      setRemoveQueueLoading(false);
     } catch (error: any) {
       const resMessage =
         (error.response &&
@@ -179,7 +186,7 @@ const Home: React.FC = () => {
         error.message ||
         error.toString();
 
-      setRestaurantUpdateLoading(false);
+      setRemoveQueueLoading(false);
       addToast(resMessage, {
         appearance: "error",
       });
@@ -214,10 +221,20 @@ const Home: React.FC = () => {
                 loadingUpdateTable={updateTableLoading}
               />
               <CurrentQueueStatus
-                queues={restaurant.queues}
+                queues={restaurant.queues.filter((item) => !item.isSettled)}
                 removeFromQueue={handleRemoveFromQueue}
                 loadingRemoveQueue={removeQueueLoading}
               />
+
+              <button
+                type="button"
+                onClick={() => {
+                  fetchData();
+                }}
+                className="btn btn-dark refresh-btn"
+              >
+                Refresh
+              </button>
             </section>
           )}
         </>

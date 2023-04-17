@@ -2,7 +2,20 @@
   margin-bottom: 5px;
 }
 
-/* .alert {
-  font-size: 12px;
-  padding: 4px 10px;
-} */
+.general-form-container {
+  display: grid;
+  grid-auto-flow: column;
+}
+
+.card-container.card {
+  padding: 20px;
+}
+
+.form-group {
+  width: 95%;
+}
+
+.btn-update {
+  position: relative;
+  top: 40px;
+}
